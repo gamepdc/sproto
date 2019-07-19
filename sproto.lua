@@ -248,4 +248,68 @@ function host:attach(sp)
 	end
 end
 
+
+local function decode(self, isrequest, ...)
+	local bin = core.unpack(...)
+	header_tmp.type = nil
+	header_tmp.session = nil
+	header_tmp.ud = nil
+	local header, size = core.decode(self.__package, bin, header_tmp)
+	local content = bin:sub(size + 1)
+	local proto = queryproto(self.__proto, header.type)
+	local result
+
+	if isrequest then
+		if proto.request then
+			result = core.decode(proto.request, content)
+		end
+	else
+		if proto.response then
+			result = core.decode(proto.response, content)
+		end
+	end
+
+	return proto.name, result, header_tmp.session, header.ud
+end
+
+function host:decode_request(...)
+	return decode(self, true, ...)
+end
+
+function host:decode_response(...)
+	return decode(self, false, ...)
+end
+
+local function encode(self, isrequest, name, args, session, ud)
+	local proto = queryproto(sp, name)
+	header_tmp.type = proto.tag
+	header_tmp.session = session
+	header_tmp.ud = ud
+	local header = core.encode(self.__package, header_tmp)
+
+	local content
+	if isrequest then
+		if proto.request then
+			content = core.encode(proto.request, args)
+		end
+	else
+		if proto.respose then
+			content = core.encode(proto.response, args)
+		end
+	end
+
+	if content then
+		return core.pack(header .. content)
+	else
+		return core.pack(header)
+	end
+end
+
+	return encode(self, true, name, args, session, ud)
+end
+
+function host:decode_response(name, args, session, ud)
+	return encode(self, false, name, args, session, ud)
+end
+
 return sproto
