@@ -305,6 +305,7 @@ local function encode(self, isrequest, name, args, session, ud)
 	end
 end
 
+function host:encode_request(name, args, session, ud)
 	return encode(self, true, name, args, session, ud)
 end
 
