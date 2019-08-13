@@ -308,7 +308,11 @@ end
 	return encode(self, true, name, args, session, ud)
 end
 
-function host:decode_response(name, args, session, ud)
+function host:encode_request(name, args, session, ud)
+	return encode(self, true, name, args, session, ud)
+end
+
+function host:encode_response(name, args, session, ud)
 	return encode(self, false, name, args, session, ud)
 end
 
